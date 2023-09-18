@@ -1,0 +1,22 @@
+query-params:
+    all-fields: null
+    title: null
+    abstract: null
+    authors: null
+    classification-computer_science: y # 主题为cs
+    subject: # 搜索主题，数组类型 ，取值 cs/math
+      - cs
+      - math
+    classification-include_cross_list: include # include/exclude 是否包括交叉列出的论文
+    date-date_type: submitted_date # 搜索的日期类型 submitted_date/submitted_date_first/announced_date_first
+    date-filter_by: all_dates # all_dates(包含所有日期) past_12(近12月) specific_year(具体某一年) date_range (指定日期范围)
+    date-year: null # YYYY 指定搜索年份，当filter_by = specific_year有效
+    date-from_date: null # YYYY-[MM]-[DD]，当filter_by = date_range有效
+    date-to_date: null   # YYYY-[MM]-[DD]，当filter_by = date_range有效
+    abstracts: show # show/hide 搜索是否展示摘要
+    size: 200 # 分页大小
+    order: -announced_date_first #排序规则 -announced_date_first(优先展示最新发表日期)/announced_date_first(优先展示最早发表日期)/-submitted_date(优先展示最新提交日期)/submitted_date(优先展示最早提交日期)/relevance(相关性)
+    include_older_versions: null # y/n/null，是否包括旧版本的论文
+
+
+
