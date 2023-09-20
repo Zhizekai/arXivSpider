@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import random
 import smtplib
 
+
 current_path = os.path.abspath(".")
 configs_path = os.path.join(current_path, 'config/')
 config_subscriber_path_template = '../../uizekp/arXivSpider/config/config-{}.yaml'
