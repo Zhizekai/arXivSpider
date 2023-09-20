@@ -176,7 +176,7 @@ def get_paper_list(html):
 
     items = []
     for i, paper in enumerate(zip(ids, titles, authors, pdf_urls)):
-        items.append({"ids": paper[0], "title": paper[1], "authors": paper[2][8:], "pdf_url": paper[3]})
+        items.append({"id": paper[0], "title": paper[1], "authors": paper[2][8:], "pdf_url": paper[3]})
     print(items)
 
     total = 100
@@ -209,7 +209,7 @@ def save_subscriber_newest_paper_id(subscriber: str, paper_id: str):
 
 def is_newest_paper(subscriber: str, paper_id: str) -> bool:
     """
-    判断是不是最新发的论文，如果是第一次查询，则判定为最新发的论文
+    判断是不是最新发的论文；如果是第一次查询，则判定为最新发的论文
     """
     cache = get_subscriber_cache(subscriber)
     if not cache or 'newest-paper-id' not in cache:
