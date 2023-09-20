@@ -36,7 +36,7 @@ config_default_dict = get_config_dict()
 
 
 def get_subscribers_list() -> list[str]:
-    return os.listdir(configs_path)
+    return [s.removeprefix('config-').removesuffix('.yaml') for s in os.listdir(configs_path) if not s == 'config.yaml']
 
 
 def get_subscriber_config_dict(subscriber: str = None) -> dict[str, any]:
@@ -78,15 +78,15 @@ def del_subscriber_config(subscriber: str = None) -> bool:
     os.remove(config_path)
     return not os.path.exists(config_path)
 
-# 获取搜索url
-def get_advanced_search_url(subscriber: str = 'default', start: int = 0, input_query_params=None) -> str:
+
+def get_advanced_search_url(subscriber: str = 'default', start: int = 0,
+                            query_params_dict: dict[str, any] = None) -> str:
     query_params = config_default_dict['query-params']
     if not subscriber == 'default':
         query_params.update(get_subscriber_config_dict(subscriber)['query-params'])
+    if query_params_dict:
+        query_params.update(query_params_dict)
 
-    # 从外部输入的
-    if input_query_params:
-        query_params = input_query_params
     # 设置terms参数 （作者、类别、主题、摘要等）
     term_i = 0
     if 'all-fields' in query_params and query_params['all-fields']:
@@ -142,7 +142,7 @@ def get_one_page(url):
     print(response.status_code)
     if response.status_code == 200:
         return response.text
-    return False
+    return None
 
 
 def get_paper_list(html):
@@ -154,9 +154,9 @@ def get_paper_list(html):
     pdf_urls = []
     for p in list_ids:
         alist = p.find_all('a')
-        print(alist)
         ids.append(alist[0].get_text())
-        pdf_urls.append((alist[1].get('href')))
+        if alist[1].get('href'):
+            pdf_urls.append((alist[1].get('href')))
 
     list_title = content.find_all('p', class_='title is-5 mathjax')
     titles = [t.get_text().strip() for t in list_title]
@@ -179,8 +179,12 @@ def get_paper_list(html):
     return items, total
 
 
-
 # get_paper_list(get_one_page(get_advanced_search_url('u1')))
+
+# cache
+def save_cache_():
+    pass
+
 
 if __name__ == '__main__':
     pass
