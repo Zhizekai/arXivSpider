@@ -11,8 +11,7 @@ import time
 from bs4 import BeautifulSoup
 import random
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+
 
 current_path = os.path.abspath(".")
 configs_path = os.path.join(current_path, 'config/')
@@ -170,9 +169,6 @@ def get_paper_list(html):
     authors = [t.replace(" ", "") for t in authors]
     # list_subjects = content.find_all('div', class_='list-subjects')
 
-    # print(ids, "\n", titles, "\n", list_authors)
-    # print(titles)
-    # print(authors)
 
     items = []
     for i, paper in enumerate(zip(ids, titles, authors, pdf_urls)):
@@ -221,7 +217,6 @@ def is_newest_paper(subscriber: str, paper_id: str) -> bool:
 # save_subscriber_newest_paper_id('test','arc')
 # print(get_subscriber_cache('test'))
 # print(is_newest_paper('test', 'arc'))
-
 
 if __name__ == '__main__':
     pass
