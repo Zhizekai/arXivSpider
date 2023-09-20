@@ -11,7 +11,8 @@ import time
 from bs4 import BeautifulSoup
 import random
 import smtplib
-
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 current_path = os.path.abspath(".")
 configs_path = os.path.join(current_path, 'config/')
@@ -25,8 +26,14 @@ subject_dict = {
     'cs': 'classification-mathematics'
 }
 
+config_dict = None
+
 
 def get_config_dict() -> dict[str, any]:
+    global config_dict
+    if config_dict:
+        return config_dict.copy()
+
     config_file = open(configs_path + 'config.yaml', 'r', encoding="utf-8")
     file_data = config_file.read()  # 读取file内容
     config_file.close()
@@ -169,7 +176,6 @@ def get_paper_list(html):
     authors = [t.replace(" ", "") for t in authors]
     # list_subjects = content.find_all('div', class_='list-subjects')
 
-
     items = []
     for i, paper in enumerate(zip(ids, titles, authors, pdf_urls)):
         items.append({"id": paper[0], "title": paper[1], "authors": paper[2][8:], "pdf_url": paper[3]})
@@ -185,7 +191,7 @@ def get_paper_list(html):
 def get_subscriber_cache(subscriber: str = None) -> dict[str, any]:
     file_path = caches_path + f'cache-{subscriber}.json'
     if not os.path.exists(file_path):
-        return None
+        return {}
     with open(file_path, 'r') as f:
         json_data = json.load(f)
     return json_data
@@ -217,6 +223,61 @@ def is_newest_paper(subscriber: str, paper_id: str) -> bool:
 # save_subscriber_newest_paper_id('test','arc')
 # print(get_subscriber_cache('test'))
 # print(is_newest_paper('test', 'arc'))
+
+
+# email
+def get_email_template(template_name: str = 'default'):
+    return get_config_dict()['system']['e-mail']['template'][template_name]
+
+
+def send_email(subscriber: str, receive_email: str, title, content, attach_path: str = None, file_name: str = None):
+    """
+    subscriber / receive_email二选一即可
+    """
+    sys_cfg = get_config_dict()['system']['e-mail']['send']
+    # 发送者邮箱
+    sender = sys_cfg['account']
+    # 发送者的登陆用户名和密码
+    user = sys_cfg['account']
+    password = sys_cfg['password']  # dailyarxiv123
+    # 发送者邮箱的SMTP服务器地址
+    smtpserver = sys_cfg['smtp-server']
+    # 接收者的邮箱地址
+    if receive_email:
+        receiver = receive_email  # receiver 可以是一个list
+    else:
+        receiver = get_subscriber_config_dict(subscriber)['e-mail']
+
+    msg = MIMEMultipart('alternative')
+    # 发送邮箱地址
+    msg['From'] = sender
+    # 收件箱地址
+    msg['To'] = receiver
+    # 主题
+    msg['Subject'] = title
+
+    # 填充消息
+    part1 = MIMEText(content, 'plain', 'utf-8')
+    msg.attach(part1)
+    # 发送附件
+    if attach_path:
+        att1 = MIMEText(open('test.txt', 'rb').read(), 'base64', 'utf-8')
+        att1["Content-Type"] = 'application/octet-stream'
+        # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
+        att1["Content-Disposition"] = f'attachment; filename="{file_name}"'
+        msg.attach(att1)
+
+    smtp = smtplib.SMTP()  # 实例化SMTP对象
+    smtp.connect(smtpserver, 25)  # （缺省）默认端口是25 也可以根据服务器进行设定
+    smtp.login(user, password)  # 登陆smtp服务器
+    smtp.sendmail(sender, receiver, msg.as_string())  # 发送邮件 ，这里有三个参数
+    '''
+    login()方法用来登录SMTP服务器，sendmail()方法就是发邮件，由于可以一次发给多个人，所以传入一个list，邮件正文
+    是一个str，as_string()把MIMEText对象变成str。
+    '''
+    smtp.quit()
+# print(get_config_dict()['system']['e-mail']['template']['t1'].format('高','impact','lazi'))
+
 
 if __name__ == '__main__':
     pass

@@ -1,6 +1,22 @@
 system:
-    send:
-        account: 1@qq.com
+    e-mail:
+        send:
+            account: 1310248516@qq.com
+            password: zpbqpzkrsgwigbah
+            smtp-server: smtp.qq.com
+
+        template:
+            default: | # 该模板仅供参考
+                '   旅行者，今天也要加油哦！这是你今天的paper列表，请享用！
+                    {}
+                over'
+            newest-paper-reminder-1: |
+                '   最新文章提醒：
+                    您订阅的文章搜索已更新新文章：
+                    文章标题：{}
+                    文章作者：{}
+                    文章地址：{}'
+
 query-params:
     all-fields: null
     title: null
