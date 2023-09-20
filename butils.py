@@ -15,7 +15,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 current_path = os.path.abspath(".")
-configs_path = os.path.join(current_path, '../../uizekp/arXivSpider/config/')
+configs_path = os.path.join(current_path, 'config/')
 config_subscriber_path_template = '../../uizekp/arXivSpider/config/config-{}.yaml'
 
 caches_path = os.path.join(current_path, './cache/')

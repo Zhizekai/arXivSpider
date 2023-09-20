@@ -1,5 +1,6 @@
 import gradio as gr
 import url as _url
+from butils import get_paper_list,get_one_page
 
 
 def greet(name):
@@ -22,12 +23,16 @@ def start_spider(*argg):
     query_params['date-from_date'] = argg[4]
     query_params['date-to_date'] = argg[5]
     # print(query_params)
-    print(_url.get_url('bcai', query_params))
+    url = _url.get_url('bcai', query_params)
+    html = get_one_page(url)
+    print(
+        get_paper_list(html)
+    )
 
 
 # 保存设置的文件本地路径
-def save_file_func(file_location_base):
-    print(file_location_base)
+def save_file_func(*kwargs):
+    print(kwargs)
 
 
 # 保存SMTP邮箱设置
@@ -70,6 +75,11 @@ with gr.Blocks() as demo:
                 file_location = gr.Textbox(value='D:\src', label="文件存储位置")
                 save_file_button = gr.Button("保存文件存储位置设置", variant='primary')
                 save_file_button.click(save_file_func, inputs=[file_location])
+
+                gr.Markdown("# 下载设置")
+                file_num = gr.Textbox(value='10', label="下载文章个数")
+                save_download_setting_button = gr.Button("保存下载设置", variant='primary')
+                save_download_setting_button.click(save_file_func, inputs=[file_num])
     with gr.Tab("订阅最新论文信息"):
         with gr.Row():
             with gr.Column(scale=1):
