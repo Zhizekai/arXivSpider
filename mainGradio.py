@@ -1,12 +1,28 @@
 import gradio as gr
+import url as _url
 
 
 def greet(name):
     return "Hello " + name + "!"
 
 
+# 开始爬虫
 def start_spider(*argg):
-    print(argg)
+    query_params = {'title': argg[0], 'authors': argg[1], 'abstract': argg[2], 'subject': []}
+
+    def square(x):
+        subject_dict = {
+            'Mathematics (math)': 'math',
+            'Computer Science (cs)': 'cs'
+        }
+        return subject_dict[x]
+
+    query_params['subject'] = query_params['subject'] + list(map(square, argg[3]))
+
+    query_params['date-from_date'] = argg[4]
+    query_params['date-to_date'] = argg[5]
+    # print(query_params)
+    print(_url.get_url('bcai', query_params))
 
 
 # 保存设置的文件本地路径
@@ -44,6 +60,7 @@ with gr.Blocks() as demo:
                         date_from = gr.Textbox(value="2020-03-18", label="From")
                     with gr.Column(scale=1):
                         date_to = gr.Textbox(value="2022-03-18", label="To")
+
                 btn12 = gr.Button("开始下载论文", variant='primary')
                 btn12.click(start_spider,
                             inputs=[title_input, author_input, abstract_input, subject_checkbox, date_from, date_to])
@@ -93,4 +110,4 @@ with gr.Blocks() as demo:
                         out = gr.Textbox()
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.queue().launch()
