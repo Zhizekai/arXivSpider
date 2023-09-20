@@ -13,7 +13,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 current_path = os.path.abspath(".")
-configs_path = os.path.join(current_path, '../../uizekp/arXivSpider/config/')
+configs_path = os.path.join(current_path, 'config/')
 config_subscriber_path_template = '../../uizekp/arXivSpider/config/config-{}.yaml'
 
 base_url = 'https://arxiv.org/search/advanced?advanced=&{}'
@@ -78,12 +78,15 @@ def del_subscriber_config(subscriber: str = None) -> bool:
     os.remove(config_path)
     return not os.path.exists(config_path)
 
-
-def get_advanced_search_url(subscriber: str = 'default', start: int = 0 ) -> str:
+# 获取搜索url
+def get_advanced_search_url(subscriber: str = 'default', start: int = 0, input_query_params=None) -> str:
     query_params = config_default_dict['query-params']
     if not subscriber == 'default':
         query_params.update(get_subscriber_config_dict(subscriber)['query-params'])
 
+    # 从外部输入的
+    if input_query_params:
+        query_params = input_query_params
     # 设置terms参数 （作者、类别、主题、摘要等）
     term_i = 0
     if 'all-fields' in query_params and query_params['all-fields']:
@@ -139,7 +142,7 @@ def get_one_page(url):
     print(response.status_code)
     if response.status_code == 200:
         return response.text
-    return None
+    return False
 
 
 def get_paper_list(html):
@@ -151,6 +154,7 @@ def get_paper_list(html):
     pdf_urls = []
     for p in list_ids:
         alist = p.find_all('a')
+        print(alist)
         ids.append(alist[0].get_text())
         pdf_urls.append((alist[1].get('href')))
 
@@ -175,7 +179,8 @@ def get_paper_list(html):
     return items, total
 
 
-get_paper_list(get_one_page(get_advanced_search_url('u1')))
+
+# get_paper_list(get_one_page(get_advanced_search_url('u1')))
 
 if __name__ == '__main__':
     pass
