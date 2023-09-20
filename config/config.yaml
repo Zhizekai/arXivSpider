@@ -1,3 +1,6 @@
+system:
+    send:
+        account: 1@qq.com
 query-params:
     all-fields: null
     title: null

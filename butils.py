@@ -1,6 +1,8 @@
 """
 @author Bcai
 """
+import json
+
 import yaml
 import os
 from urllib.parse import urlencode
@@ -14,6 +16,8 @@ import smtplib
 current_path = os.path.abspath(".")
 configs_path = os.path.join(current_path, 'config/')
 config_subscriber_path_template = '../../uizekp/arXivSpider/config/config-{}.yaml'
+
+caches_path = os.path.join(current_path, './cache/')
 
 base_url = 'https://arxiv.org/search/advanced?advanced=&{}'
 subject_dict = {
@@ -154,7 +158,7 @@ def get_paper_list(html):
     for p in list_ids:
         alist = p.find_all('a')
         ids.append(alist[0].get_text())
-        if alist[1].get('href'):
+        if len(alist) > 1:
             pdf_urls.append((alist[1].get('href')))
 
     list_title = content.find_all('p', class_='title is-5 mathjax')
@@ -178,8 +182,41 @@ def get_paper_list(html):
 # get_paper_list(get_one_page(get_advanced_search_url('u1')))
 
 # cache
-def save_cache_():
-    pass
+def get_subscriber_cache(subscriber: str = None) -> dict[str, any]:
+    file_path = caches_path + f'cache-{subscriber}.json'
+    if not os.path.exists(file_path):
+        return None
+    with open(file_path, 'r') as f:
+        json_data = json.load(f)
+    return json_data
+
+
+def save_subscriber_cache(subscriber: str = None, data: dict[str, any] = None):
+    file_path = caches_path + f'cache-{subscriber}.json'
+    with open(file_path, 'w') as f:
+        json.dump(data, f)
+
+
+def save_subscriber_newest_paper_id(subscriber: str, paper_id: str):
+    cache = get_subscriber_cache(subscriber)
+    cache['newest-paper-id'] = paper_id
+    save_subscriber_cache(subscriber, cache)
+
+
+def is_newest_paper(subscriber: str, paper_id: str) -> bool:
+    """
+    判断是不是最新发的论文，如果是第一次查询，则判定为最新发的论文
+    """
+    cache = get_subscriber_cache(subscriber)
+    if not cache or 'newest-paper-id' not in cache:
+        return True
+    return cache['newest-paper-id'] != paper_id
+
+
+# save_subscriber_cache('test', {'user': 'tst'})
+# save_subscriber_newest_paper_id('test','arc')
+# print(get_subscriber_cache('test'))
+# print(is_newest_paper('test', 'arc'))
 
 if __name__ == '__main__':
     pass
