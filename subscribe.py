@@ -3,6 +3,7 @@
 """
 import time
 import butils
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 
 def subscribe_email():
@@ -16,10 +17,11 @@ def subscribe_email():
                 butils.save_subscriber_newest_paper_id(s, papers[0]['id'])  # 更新最新文章的id
                 # 发送邮件
                 content = template.format(papers[0]['title'], papers[0]['authors'], papers[0]['pdf_url'])
-                butils.send_email(s, cfg['e-mail'], '新文章提醒',content)
+                butils.send_email(s, cfg['e-mail'], '新文章提醒', content)
 
 
 if __name__ == '__main__':
-    subscribe_email()
-    # butils.send_email(None, '1364761092@qq.com', 'asdas','asdadasdasd')
-    # time.sleep(60 * 60 * 24)
+    # 调度框架每周一和周四早上7:00执行一次
+    scheduler = BlockingScheduler()
+    scheduler.add_job(subscribe_email, 'cron', max_instances=1, day_of_week='mon,thu', hour=7, minute=00)
+    scheduler.start()
