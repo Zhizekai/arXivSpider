@@ -30,6 +30,10 @@ config_dict = None
 
 
 def get_config_dict() -> dict[str, any]:
+    """
+    获取全局配置文件
+    :return:
+    """
     global config_dict
     if config_dict:
         return config_dict.copy()

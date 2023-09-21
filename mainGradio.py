@@ -1,13 +1,15 @@
 import gradio as gr
 import url as _url
 import requests
-from butils import get_paper_list, get_one_page
+from butils import get_paper_list, get_one_page, save_config
+
 import io
 from multiprocessing import pool
 import time
 
-save_path = 'D:\\src\\'
-global_file_num = '10'
+save_path = 'D:\\src\\'  # 保存文件的路径
+global_file_num = '10'  # 下载文件个数
+subscribe_person = 'bcai'  # 订阅人名称
 
 
 def greet(name):
@@ -41,6 +43,7 @@ def start_spider(*argg):
     result_list, _ = get_paper_list(html)
 
     result_msg = []
+
     # p = pool.Pool()
 
     def download_pdf(save_path, pdf_name, pdf_url):
@@ -50,8 +53,12 @@ def start_spider(*argg):
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "zh-CN,zh;q=0.8"}
 
-        proxies = {"http": "http://localhost:7890", "https": "http://localhost:7890", }
-        response = requests.get(pdf_url, headers=send_headers, allow_redirects=True,proxies=proxies)
+        # 代理设置
+        proxies = {
+            "http": "http://localhost:7890",
+            "https": "http://localhost:7890",
+        }
+        response = requests.get(pdf_url, headers=send_headers, allow_redirects=True, proxies=proxies)
         bytes_io = io.BytesIO(response.content)
         with open(save_path + "%s.PDF" % pdf_name, mode='wb') as f:
             f.write(bytes_io.getvalue())
@@ -82,6 +89,16 @@ def save_file_func(*kwargs):
 def save_email_func(*kwargs):
     print(kwargs[0])
     print(kwargs[1])
+    print(kwargs[2])
+    email_subscribe_setting_dict = {
+        "e-mail": kwargs[0]
+    }
+    save_config(subscribe_person, email_subscribe_setting_dict)
+
+
+# 开始订阅，保存订阅设置，订阅进程单独开启，到时间会自动读取订阅信息进行发送邮件
+def start_subscribe(*kwargs):
+    print(kwargs)
 
 
 with gr.Blocks() as demo:
@@ -131,41 +148,33 @@ with gr.Blocks() as demo:
     with gr.Tab("订阅最新论文信息"):
         with gr.Row():
             with gr.Column(scale=1):
-                # gr.Markdown("# Search terms")
-                # title_input = gr.Textbox(label="title")
-                # author_input = gr.Textbox(label="author")
-                # abstract_input = gr.Textbox(label="abstract")
+                gr.Markdown("# subscribe terms")
+                title_input = gr.Textbox(label="title")
+                author_input = gr.Textbox(label="author")
+                abstract_input = gr.Textbox(label="abstract")
 
                 gr.Markdown("# Subject")
-
                 subject_checkbox = gr.CheckboxGroup(
                     ["Computer Science (cs)", "Economics (econ)", "Electrical Engineering and Systems Science (eess)",
                      "Mathematics (math)", "Quantitative Biology (q-bio)", "Quantitative Finance (q-fin)",
                      "Statistics (stat)"],
-                    info="你想要搜什么类型的")
+                    info="你想要订阅什么类型的")
 
-                gr.Markdown("# Date")
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        date_from = gr.Textbox(label="From")
-                    with gr.Column(scale=1):
-                        date_to = gr.Textbox(label="To")
-                btn12 = gr.Button("开始订阅", variant='primary')
-                btn12.click(start_spider,
-                            inputs=[title_input, author_input, abstract_input, subject_checkbox, date_from, date_to])
+                start_subscribe_button = gr.Button("开始订阅", variant='primary')
+                start_subscribe_button.click(start_subscribe,
+                                             inputs=[title_input, author_input, abstract_input, subject_checkbox])
             with gr.Column(scale=1):
+                gr.Markdown("订阅人设置")
+                subscribe_person_input = gr.Textbox(value=subscribe_person, label="订阅人")
+
                 gr.Markdown("# SMTP邮箱设置")
-                sender_email = gr.Textbox(value="1310248516@qq.com", label="sender_email")
-                sender_email_password = gr.Textbox(label="sender_email_password")
+                sender_email_input = gr.Textbox(value="1310248516@qq.com", label="sender_email")
+                sender_email_password_input = gr.Textbox(label="sender_email_password")
                 # abstract_input = gr.Textbox(label="abstract")
 
                 save_email_button = gr.Button("保存邮箱设置", variant='primary')
-                save_email_button.click(save_email_func, inputs=[sender_email, sender_email_password])
-
-                with gr.Blocks():
-                    with gr.Row():
-                        inp = gr.Textbox(placeholder="What is your name?")
-                        out = gr.Textbox()
+                save_email_button.click(save_email_func, inputs=[sender_email_input, sender_email_password_input,
+                                                                 subscribe_person_input])
 
 if __name__ == "__main__":
     demo.queue()
