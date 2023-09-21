@@ -3,6 +3,8 @@ import url as _url
 import requests
 from butils import get_paper_list, get_one_page
 import io
+from multiprocessing import pool
+import time
 
 save_path = 'D:\\src\\'
 global_file_num = '10'
@@ -27,10 +29,19 @@ def start_spider(*argg):
 
     query_params['date-from_date'] = argg[4]
     query_params['date-to_date'] = argg[5]
-    # print(query_params)
+    # aa = []
+    # for i in range(10):
+    #
+    #     aa.append(["loading", " 下载成功'+str(i)"])
+    #     print(aa)
+    #     time.sleep(2)
+    #     yield aa
     url = _url.get_url('bcai', query_params)
     html = get_one_page(url)
     result_list, _ = get_paper_list(html)
+
+    result_msg = []
+    # p = pool.Pool()
 
     def download_pdf(save_path, pdf_name, pdf_url):
         send_headers = {
@@ -38,7 +49,9 @@ def start_spider(*argg):
             "Connection": "keep-alive",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "zh-CN,zh;q=0.8"}
-        response = requests.get(pdf_url, headers=send_headers, allow_redirects=True)
+
+        proxies = {"http": "http://localhost:7890", "https": "http://localhost:7890", }
+        response = requests.get(pdf_url, headers=send_headers, allow_redirects=True,proxies=proxies)
         bytes_io = io.BytesIO(response.content)
         with open(save_path + "%s.PDF" % pdf_name, mode='wb') as f:
             f.write(bytes_io.getvalue())
@@ -48,9 +61,15 @@ def start_spider(*argg):
         if index == int(global_file_num):
             break
 
+        # p.apply_async(download_pdf, args=(save_path, item['title'], item['pdf_url']))
         download_pdf(save_path=save_path, pdf_name=item['title'], pdf_url=item['pdf_url'])
-        print(item['title'])
-        yield item['title']
+        result_msg.append(["loading。。。。。", item['title'] + "下载成功 "])
+        yield result_msg
+
+    # p.close()
+    # p.join()
+
+
 # 保存设置的文件本地路径
 def save_file_func(*kwargs):
     global save_path
@@ -103,11 +122,11 @@ with gr.Blocks() as demo:
                 save_download_setting_button = gr.Button("保存下载设置", variant='primary')
                 save_download_setting_button.click(save_file_func, inputs=[file_location, file_num])
 
-                text_show = gr.State([])
+                chatbot = gr.Chatbot()
 
                 btn12.click(start_spider,
                             inputs=[title_input, author_input, abstract_input, subject_checkbox, date_from, date_to],
-                            outputs=[text_show]
+                            outputs=[chatbot]
                             )
     with gr.Tab("订阅最新论文信息"):
         with gr.Row():
